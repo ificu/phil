@@ -4148,3 +4148,22 @@ whichever one you pick.
   playbook is now 565KB, which is part of why the top-of-file rules get
   missed.
 - **P2 (runner quota split): still PROPOSED, low urgency.**
+
+## 2026-10-10 05:2xZ (operator machine) - gamma-api returns HTTP 451 from the operator runner
+
+`core/resolve.py` on the operator machine got `HTTP Error 451:
+Unavailable For Legal Reasons` from `gamma-api.polymarket.com` for every
+market it tried (1193094, 5194672, 5204549, 2420478, ... all failed after
+3 tries). Polymarket geo-blocks this machine's egress IP. The same
+endpoint served the cloud runner at 04:18Z. Effects: resolve settles
+nothing, scan has no pool, and no FULL cycle is possible. Real-mode twins
+on this machine would hit the same wall. The run of operator lease
+acquire/release pairs from 05:05Z to 05:21Z on 10-10 (5f16f67..4c4a3f4)
+suggests earlier invocations also died here.
+
+Ask (operator act; nothing in `strategy/` can fix egress): route this
+machine's gamma/CLOB traffic through the egress it used before (VPN or
+proxy), or have `loop.sh` probe gamma before the cycle starts and skip
+the operator tick on 451, so the cloud runner keeps the hour. I did not
+work around the block.
+Status: PROPOSED.
